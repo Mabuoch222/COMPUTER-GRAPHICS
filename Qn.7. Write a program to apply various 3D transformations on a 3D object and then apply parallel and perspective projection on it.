@@ -1,0 +1,170 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+// Structure to represent a 3D point
+struct Point {
+    float x, y, z, w;
+    Point(float x = 0, float y = 0, float z = 0) : x(x), y(y), z(z), w(1) {}
+};
+
+// Function to multiply a matrix with a point (homogeneous coordinates)
+Point multiplyMatrixWithPoint(float mat[4][4], Point p) {
+    float result[4] = {0, 0, 0, 0};
+    float point[4] = {p.x, p.y, p.z, p.w}; // Homogeneous coordinates
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            result[i] += mat[i][j] * point[j];
+        }
+    }
+
+    return Point(result[0], result[1], result[2]);
+}
+
+// Function to apply translation
+void translate(float tx, float ty, float tz, Point &p) {
+    float translationMatrix[4][4] = {
+        {1, 0, 0, tx},
+        {0, 1, 0, ty},
+        {0, 0, 1, tz},
+        {0, 0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(translationMatrix, p);
+}
+
+// Function to apply scaling
+void scale(float sx, float sy, float sz, Point &p) {
+    float scalingMatrix[4][4] = {
+        {sx, 0, 0, 0},
+        {0, sy, 0, 0},
+        {0, 0, sz, 0},
+        {0, 0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(scalingMatrix, p);
+}
+
+// Function to apply rotation around X-axis
+void rotateX(float angle, Point &p) {
+    float radians = angle * M_PI / 180.0;
+    float rotationMatrix[4][4] = {
+        {1, 0, 0, 0},
+        {0, cos(radians), -sin(radians), 0},
+        {0, sin(radians), cos(radians), 0},
+        {0, 0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(rotationMatrix, p);
+}
+
+// Function to apply rotation around Y-axis
+void rotateY(float angle, Point &p) {
+    float radians = angle * M_PI / 180.0;
+    float rotationMatrix[4][4] = {
+        {cos(radians), 0, sin(radians), 0},
+        {0, 1, 0, 0},
+        {-sin(radians), 0, cos(radians), 0},
+        {0, 0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(rotationMatrix, p);
+}
+
+// Function to apply rotation around Z-axis
+void rotateZ(float angle, Point &p) {
+    float radians = angle * M_PI / 180.0;
+    float rotationMatrix[4][4] = {
+        {cos(radians), -sin(radians), 0, 0},
+        {sin(radians), cos(radians), 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(rotationMatrix, p);
+}
+
+// Function to apply parallel projection (Orthographic projection)
+Point parallelProjection(Point p) {
+    float projectionMatrix[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 1, 0}
+    };
+    return multiplyMatrixWithPoint(projectionMatrix, p);
+}
+
+// Function to apply perspective projection
+Point perspectiveProjection(Point p, float focalLength, float depth) {
+    float projectionMatrix[4][4] = {
+        {focalLength / depth, 0, 0, 0},
+        {0, focalLength / depth, 0, 0},
+        {0, 0, 0, -1 / depth},
+        {0, 0, -1, 0}
+    };
+    return multiplyMatrixWithPoint(projectionMatrix, p);
+}
+
+// Function to print the point
+void printPoint(const Point &p) {
+    cout << "(" << p.x << ", " << p.y << ", " << p.z << ")\n";
+}
+
+int main() {
+    // Define a 3D object (cube) vertices
+    vector<Point> object = {
+        Point(1, 1, 1), Point(1, 1, -1), Point(1, -1, 1), Point(1, -1, -1),
+        Point(-1, 1, 1), Point(-1, 1, -1), Point(-1, -1, 1), Point(-1, -1, -1)
+    };
+    
+    // Apply transformations to the object
+    cout << "Original Points:\n";
+    for (const Point &p : object) {
+        printPoint(p);
+    }
+
+    // Translation (Tx = 2, Ty = 3, Tz = 4)
+    for (Point &p : object) {
+        translate(2, 3, 4, p);
+    }
+
+    cout << "\nAfter Translation (Tx = 2, Ty = 3, Tz = 4):\n";
+    for (const Point &p : object) {
+        printPoint(p);
+    }
+
+    // Scaling (Sx = 2, Sy = 2, Sz = 2)
+    for (Point &p : object) {
+        scale(2, 2, 2, p);
+    }
+
+    cout << "\nAfter Scaling (Sx = 2, Sy = 2, Sz = 2):\n";
+    for (const Point &p : object) {
+        printPoint(p);
+    }
+
+    // Rotation (Rotate 45 degrees around Z-axis)
+    for (Point &p : object) {
+        rotateZ(45, p);
+    }
+
+    cout << "\nAfter Rotation (Rotate 45 degrees around Z-axis):\n";
+    for (const Point &p : object) {
+        printPoint(p);
+    }
+
+    // Apply Parallel Projection
+    cout << "\nAfter Parallel Projection:\n";
+    for (const Point &p : object) {
+        Point proj = parallelProjection(p);
+        printPoint(proj);
+    }
+
+    // Apply Perspective Projection (Focal length = 2, Depth = 5)
+    cout << "\nAfter Perspective Projection (Focal Length = 2, Depth = 5):\n";
+    for (const Point &p : object) {
+        Point proj = perspectiveProjection(p, 2, 5);
+        printPoint(proj);
+    }
+
+    return 0;
+}
