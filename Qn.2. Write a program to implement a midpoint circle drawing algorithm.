@@ -1,0 +1,68 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+// Function to plot a point (this is a simple implementation using console output)
+void plotPoint(int x, int y) {
+    cout << "(" << x << ", " << y << ") ";
+}
+
+// Function to implement Midpoint Circle Drawing Algorithm
+void midpointCircle(int centerX, int centerY, int radius) {
+    int x = 0;
+    int y = radius;
+    int p = 1 - radius;  // Initial decision parameter
+
+    cout << "Points on the circle: ";
+    
+    // Plot the initial points (8 symmetrical points)
+    plotPoint(centerX + x, centerY + y);  // (x, y)
+    plotPoint(centerX - x, centerY + y);  // (-x, y)
+    plotPoint(centerX + x, centerY - y);  // (x, -y)
+    plotPoint(centerX - x, centerY - y);  // (-x, -y)
+    plotPoint(centerX + y, centerY + x);  // (y, x)
+    plotPoint(centerX - y, centerY + x);  // (-y, x)
+    plotPoint(centerX + y, centerY - x);  // (y, -x)
+    plotPoint(centerX - y, centerY - x);  // (-y, -x)
+
+    // Loop to find all the points along the circumference
+    while (x < y) {
+        x++;
+
+        // Update decision parameter
+        if (p < 0) {
+            p += 2 * x + 1;  // Move right
+        } else {
+            y--;
+            p += 2 * (x - y) + 1;  // Move right and down
+        }
+
+        // Plot the symmetrical points
+        plotPoint(centerX + x, centerY + y);  // (x, y)
+        plotPoint(centerX - x, centerY + y);  // (-x, y)
+        plotPoint(centerX + x, centerY - y);  // (x, -y)
+        plotPoint(centerX - x, centerY - y);  // (-x, -y)
+        plotPoint(centerX + y, centerY + x);  // (y, x)
+        plotPoint(centerX - y, centerY + x);  // (-y, x)
+        plotPoint(centerX + y, centerY - x);  // (y, -x)
+        plotPoint(centerX - y, centerY - x);  // (-y, -x)
+    }
+
+    cout << endl;
+}
+
+// Main function to take input and draw the circle
+int main() {
+    int centerX, centerY, radius;
+
+    // Input for the center and radius of the circle
+    cout << "Enter the center coordinates (x, y): ";
+    cin >> centerX >> centerY;
+    cout << "Enter the radius of the circle: ";
+    cin >> radius;
+
+    // Call the Midpoint Circle Drawing function
+    midpointCircle(centerX, centerY, radius);
+
+    return 0;
+} 
