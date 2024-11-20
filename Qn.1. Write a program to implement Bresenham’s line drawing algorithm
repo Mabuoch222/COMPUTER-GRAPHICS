@@ -1,0 +1,53 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+// Function to plot a point on the console
+void plotPoint(int x, int y) {
+    cout << "(" << x << ", " << y << ") ";
+}
+
+// Function to implement Bresenham's Line Drawing Algorithm
+void bresenhamLine(int x1, int y1, int x2, int y2) {
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+
+    int sx = (x1 < x2) ? 1 : -1; // Step for x
+    int sy = (y1 < y2) ? 1 : -1; // Step for y
+
+    int err = dx - dy;
+
+    cout << "Points on the line: ";
+    while (true) {
+        plotPoint(x1, y1); // Plot the current point
+
+        if (x1 == x2 && y1 == y2) break;
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
+    }
+    cout << endl;
+}
+
+// Main function
+int main() {
+    int x1, y1, x2, y2;
+
+    // Input for line coordinates
+    cout << "Enter the starting point (x1, y1): ";
+    cin >> x1 >> y1;
+    cout << "Enter the ending point (x2, y2): ";
+    cin >> x2 >> y2;
+
+    // Call the Bresenham line drawing function
+    bresenhamLine(x1, y1, x2, y2);
+
+    return 0;
+}
