@@ -1,0 +1,107 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Structure to represent an edge of the polygon
+struct Edge {
+    int y_min;  // Minimum y-coordinate (starting point of edge)
+    int y_max;  // Maximum y-coordinate (ending point of edge)
+    float x_min;  // x-coordinate of the starting point
+    float slope; // Slope of the edge (change in x for a unit change in y)
+};
+
+// Compare function to sort edges based on y_min
+bool compare(Edge a, Edge b) {
+    return a.y_min < b.y_min;
+}
+
+// Function to calculate the intersection of an edge with a scanline
+float getX(Edge e, int y) {
+    return e.x_min + e.slope * (y - e.y_min);
+}
+
+// Function to perform the scan line fill algorithm
+void scanLineFill(int polygon[][2], int n) {
+    // Step 1: Construct Edge Table (ET)
+    vector<Edge> ET;
+
+    // Create edges from the polygon vertices
+    for (int i = 0; i < n; i++) {
+        int x1 = polygon[i][0];
+        int y1 = polygon[i][1];
+        int x2 = polygon[(i + 1) % n][0];
+        int y2 = polygon[(i + 1) % n][1];
+
+        // Ensure that y1 is the lower y-coordinate
+        if (y1 > y2) {
+            swap(x1, x2);
+            swap(y1, y2);
+        }
+
+        if (y1 != y2) {  // Only consider non-horizontal edges
+            Edge edge = {y1, y2, (float)x1, (float)(x2 - x1) / (float)(y2 - y1)};
+            ET.push_back(edge);
+        }
+    }
+
+    // Step 2: Sort edges by their y_min value
+    sort(ET.begin(), ET.end(), compare);
+
+    // Step 3: Initialize scanline and active edge table (AET)
+    int y = ET[0].y_min;
+    vector<Edge> AET;
+
+    while (!ET.empty() || !AET.empty()) {
+        // Step 4: Remove edges from AET where y_max == current scanline (y)
+        for (auto it = AET.begin(); it != AET.end();) {
+            if (it->y_max == y) {
+                it = AET.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // Step 5: Add new edges to AET where y_min == current scanline (y)
+        for (auto it = ET.begin(); it != ET.end();) {
+            if (it->y_min == y) {
+                AET.push_back(*it);
+                it = ET.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        // Step 6: Sort the AET based on the x-coordinate of the intersection
+        sort(AET.begin(), AET.end(), [y](Edge a, Edge b) {
+            return getX(a, y) < getX(b, y);
+        });
+
+        // Step 7: Fill the pixels between pairs of intersections in AET
+        for (int i = 0; i < AET.size(); i += 2) {
+            int x1 = (int)getX(AET[i], y);
+            int x2 = (int)getX(AET[i + 1], y);
+
+            // Fill the pixels between x1 and x2 on the current scanline
+            for (int x = x1; x <= x2; x++) {
+                cout << "Filling pixel at (" << x << ", " << y << ")\n";
+            }
+        }
+
+        // Step 8: Move to the next scanline
+        y++;
+    }
+}
+
+// Main function
+int main() {
+    // Define the polygon vertices (x, y)
+    int polygon[5][2] = {{2, 1}, {6, 1}, {8, 4}, {5, 7}, {3, 4}};
+    int n = 5; // Number of vertices in the polygon
+
+    // Call the scanLineFill function
+    scanLineFill(polygon, n);
+
+    return 0;
+}
