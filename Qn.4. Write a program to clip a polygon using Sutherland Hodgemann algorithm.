@@ -1,0 +1,115 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Define the clipping window boundaries
+#define X_MIN 0
+#define X_MAX 10
+#define Y_MIN 0
+#define Y_MAX 10
+
+// Define a point structure
+struct Point {
+    int x, y;
+};
+
+// Function to check if a point is inside the clipping window
+bool inside(Point p, int edge) {
+    if (edge == 0) {  // Left boundary
+        return p.x >= X_MIN;
+    }
+    else if (edge == 1) {  // Right boundary
+        return p.x <= X_MAX;
+    }
+    else if (edge == 2) {  // Bottom boundary
+        return p.y >= Y_MIN;
+    }
+    else {  // Top boundary
+        return p.y <= Y_MAX;
+    }
+}
+
+// Function to calculate the intersection point of a line with a boundary
+Point intersect(Point p1, Point p2, int edge) {
+    Point intersectPoint;
+    if (edge == 0) {  // Left boundary
+        intersectPoint.x = X_MIN;
+        intersectPoint.y = p1.y + (X_MIN - p1.x) * (p2.y - p1.y) / (p2.x - p1.x);
+    }
+    else if (edge == 1) {  // Right boundary
+        intersectPoint.x = X_MAX;
+        intersectPoint.y = p1.y + (X_MAX - p1.x) * (p2.y - p1.y) / (p2.x - p1.x);
+    }
+    else if (edge == 2) {  // Bottom boundary
+        intersectPoint.y = Y_MIN;
+        intersectPoint.x = p1.x + (Y_MIN - p1.y) * (p2.x - p1.x) / (p2.y - p1.y);
+    }
+    else {  // Top boundary
+        intersectPoint.y = Y_MAX;
+        intersectPoint.x = p1.x + (Y_MAX - p1.y) * (p2.x - p1.x) / (p2.y - p1.y);
+    }
+    return intersectPoint;
+}
+
+// Function to implement the Sutherland-Hodgman algorithm
+vector<Point> sutherlandHodgmanClip(vector<Point> polygon) {
+    vector<Point> clippedPolygon = polygon;
+
+    // Clip against all four boundaries of the window (left, right, bottom, top)
+    for (int edge = 0; edge < 4; edge++) {
+        vector<Point> newPolygon;
+        int n = clippedPolygon.size();
+        
+        // Loop through all edges of the polygon
+        for (int i = 0; i < n; i++) {
+            Point current = clippedPolygon[i];
+            Point next = clippedPolygon[(i + 1) % n];
+
+            // Check if the current vertex is inside the clipping boundary
+            bool currentInside = inside(current, edge);
+            bool nextInside = inside(next, edge);
+
+            if (currentInside && nextInside) {
+                // Both points are inside, keep the next point
+                newPolygon.push_back(next);
+            }
+            else if (currentInside && !nextInside) {
+                // Only the current point is inside, add the intersection point
+                newPolygon.push_back(intersect(current, next, edge));
+            }
+            else if (!currentInside && nextInside) {
+                // Only the next point is inside, add the intersection point and the next point
+                newPolygon.push_back(intersect(current, next, edge));
+                newPolygon.push_back(next);
+            }
+        }
+        clippedPolygon = newPolygon;
+    }
+    
+    return clippedPolygon;
+}
+
+// Function to print the clipped polygon
+void printPolygon(const vector<Point>& polygon) {
+    for (const Point& p : polygon) {
+        cout << "(" << p.x << ", " << p.y << ") ";
+    }
+    cout << endl;
+}
+
+// Main function
+int main() {
+    // Input polygon vertices
+    vector<Point> polygon = {{1, 1}, {8, 1}, {8, 8}, {1, 8}};
+    
+    cout << "Original Polygon: ";
+    printPolygon(polygon);
+
+    // Clip the polygon using the Sutherland-Hodgman algorithm
+    vector<Point> clippedPolygon = sutherlandHodgmanClip(polygon);
+
+    cout << "Clipped Polygon: ";
+    printPolygon(clippedPolygon);
+
+    return 0;
+}
