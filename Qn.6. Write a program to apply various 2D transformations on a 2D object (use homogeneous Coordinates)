@@ -1,0 +1,152 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+// Structure to represent a 2D point
+struct Point {
+    float x, y;
+    Point(float x = 0, float y = 0) : x(x), y(y) {}
+};
+
+// Function to multiply two 3x3 matrices
+void multiplyMatrices(float mat1[3][3], float mat2[3][3], float result[3][3]) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            result[i][j] = 0;
+            for (int k = 0; k < 3; k++) {
+                result[i][j] += mat1[i][k] * mat2[k][j];
+            }
+        }
+    }
+}
+
+// Function to multiply a matrix with a point (in homogeneous coordinates)
+Point multiplyMatrixWithPoint(float mat[3][3], Point p) {
+    float result[3] = {0, 0, 0};
+    float point[3] = {p.x, p.y, 1};  // Homogeneous coordinates
+
+    for (int i = 0; i < 3; i++) {
+        result[i] = mat[i][0] * point[0] + mat[i][1] * point[1] + mat[i][2] * point[2];
+    }
+
+    return Point(result[0], result[1]);
+}
+
+// Function to apply translation
+void translate(float tx, float ty, Point &p) {
+    float translationMatrix[3][3] = {
+        {1, 0, tx},
+        {0, 1, ty},
+        {0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(translationMatrix, p);
+}
+
+// Function to apply scaling
+void scale(float sx, float sy, Point &p) {
+    float scalingMatrix[3][3] = {
+        {sx, 0, 0},
+        {0, sy, 0},
+        {0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(scalingMatrix, p);
+}
+
+// Function to apply rotation
+void rotate(float theta, Point &p) {
+    float radians = theta * M_PI / 180.0;  // Convert angle to radians
+    float rotationMatrix[3][3] = {
+        {cos(radians), -sin(radians), 0},
+        {sin(radians), cos(radians), 0},
+        {0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(rotationMatrix, p);
+}
+
+// Function to apply shear in x direction
+void shearX(float shx, Point &p) {
+    float shearMatrix[3][3] = {
+        {1, shx, 0},
+        {0, 1, 0},
+        {0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(shearMatrix, p);
+}
+
+// Function to apply shear in y direction
+void shearY(float shy, Point &p) {
+    float shearMatrix[3][3] = {
+        {1, 0, 0},
+        {shy, 1, 0},
+        {0, 0, 1}
+    };
+    p = multiplyMatrixWithPoint(shearMatrix, p);
+}
+
+// Function to print the point
+void printPoint(const Point &p) {
+    cout << "(" << p.x << ", " << p.y << ")\n";
+}
+
+int main() {
+    vector<Point> polygon = {Point(1, 1), Point(4, 1), Point(4, 4), Point(1, 4)};
+    
+    cout << "Original Points:\n";
+    for (const Point &p : polygon) {
+        printPoint(p);
+    }
+
+    // Translation (tx = 2, ty = 3)
+    for (Point &p : polygon) {
+        translate(2, 3, p);
+    }
+
+    cout << "\nAfter Translation (Tx = 2, Ty = 3):\n";
+    for (const Point &p : polygon) {
+        printPoint(p);
+    }
+
+    // Scaling (sx = 2, sy = 2)
+    for (Point &p : polygon) {
+        scale(2, 2, p);
+    }
+
+    cout << "\nAfter Scaling (Sx = 2, Sy = 2):\n";
+    for (const Point &p : polygon) {
+        printPoint(p);
+    }
+
+    // Rotation (theta = 45 degrees)
+    for (Point &p : polygon) {
+        rotate(45, p);
+    }
+
+    cout << "\nAfter Rotation (Theta = 45 degrees):\n";
+    for (const Point &p : polygon) {
+        printPoint(p);
+    }
+
+    // Shearing in X direction (Sh_x = 1)
+    for (Point &p : polygon) {
+        shearX(1, p);
+    }
+
+    cout << "\nAfter Shearing in X direction (Sh_x = 1):\n";
+    for (const Point &p : polygon) {
+        printPoint(p);
+    }
+
+    // Shearing in Y direction (Sh_y = 1)
+    for (Point &p : polygon) {
+        shearY(1, p);
+    }
+
+    cout << "\nAfter Shearing in Y direction (Sh_y = 1):\n";
+    for (const Point &p : polygon) {
+        printPoint(p);
+    }
+
+    return 0;
+}
